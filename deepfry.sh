@@ -2,7 +2,7 @@
 
 file=spongebob.jpg
 destination=output
-iterations=20
+iterations=100
 while [ ! $# -eq 0 ]
 do
   case "$1" in

@@ -1,4 +1,4 @@
-**Welcome to the Arcangel Studio deep frying tool.**
+**DEEP FRYER**
 Requires [imagemagick](https://imagemagick.org/script/download.php).
 
 Usage:
@@ -7,5 +7,5 @@ Usage:
 
 optional args:
 `-f` image_file (default: spongebob.jpg)
-`-n` iterations (default: 20)
+`-n` iterations (default: 100)
 `-o` output_directory (default: output)
