@@ -19,7 +19,7 @@ done
 echo 'deep frying file: '$file 'destination: '$destination 'iterations: '$iterations
 extension="${file##*.}"                     # get the extension
 filename="${file%.*}"                       # get the filename
-mv "$file" "${destination}/${filename}-step-0.${extension}"    # rename file by moving it
+cp "$file" "${destination}/${filename}-step-0.${extension}"    # rename file by moving it
 
 for (( i = 1; i < $iterations; i++ )); do
   operation=$((0 + $RANDOM % 3))
