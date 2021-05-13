@@ -1,4 +1,6 @@
 **DEEP FRYER**
+
+
 Requires [imagemagick](https://imagemagick.org/script/download.php).
 
 Usage:
