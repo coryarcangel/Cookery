@@ -23,36 +23,48 @@ extension="${file##*.}"                     # get the extension
 filename="${file%.*}"                       # get the filename
 cp "$file" "${destination}/${filename}-step-0.${extension}"    # rename file by moving it
 for (( i = 1; i < $iterations; i++ )); do
-#operation=$((0 + $RANDOM % 3))
-  # modulate x factor
-  if [[ $operation = "0" ]]; then
+operation=$((0 + $RANDOM % 5))
+  
+# modulate x factor
+if [[ $operation = "0" ]]; then
     factor=$((100 + $RANDOM % 200))
     # convert $destination/$filename-step-$(($i-1)).jpg -modulate 100,$factor $destination/$filename-step-$i.jpg
     command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -modulate 100,'$factor' '$destination'/'$filename'-step-'$i'.jpg'
-  elif [[ $operation = "1" ]];
-  # compress x quality
-  then
+  
+# compress x quality
+elif [[ $operation = "1" ]];  
+then
     factor=$((1 + $RANDOM % 50))
     # convert $destination/$filename-step-$(($i-1)).jpg -compress JPEG2000 -quality $factor $destination/$filename-step-$i.jpg
     command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -compress JPEG2000 -quality '$factor' '$destination'/'$filename'-step-'$i'.jpg'
-  elif [[ $operation = "2" ]];
-  # brightness x 0xfactor
-  then
+  
+# brightness x 0xfactor  
+elif [[ $operation = "2" ]];
+then
     factor=$((10 + $RANDOM % 90))
     # convert $destination/$filename-step-$(($i-1)).jpg -brightness-contrast 0x$factor $destination/$filename-step-$i.jpg
     command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -brightness-contrast 0x'$factor' '$destination'/'$filename'-step-'$i'.jpg'
-	elif [[ $operation = "3" ]];
-# edge 
-  then
-    factor=$((1 + $RANDOM % 30))
+  
+# Edge 
+elif [[ $operation = "3" ]];
+then
+    factor=$((1 + $RANDOM % 20))
     # convert $destination/$filename-step-$(($i-1)).jpg -brightness-contrast 0x$factor $destination/$filename-step-$i.jpg
-    command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -edge '$factor' '$destination'/'$filename'-step-'$i'.jpg'
-  else
-  # sharpen x 0xfactor
-    factor=$((3 + $RANDOM % 10))
-    # convert $destination/$filename-step-$(($i-1)).jpg -sharpen 0x$factor $destination/$filename-step-$i.jpg
-    command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -sharpen 0x'$factor' '$destination'/'$filename'-step-'$i'.jpg'
-  fi
-  echo $command
-  $command
+    command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -edge '$factor' '$destination'/'$filename'-step-'$i'.jpg' 
+
+# Resize 
+elif [[ $operation = "4" ]];
+then
+    	factor=$((1 + $RANDOM % 20))
+    	# convert $destination/$filename-step-$(($i-1)).jpg -brightness-contrast 0x$factor $destination/$filename-step-$i.jpg
+    	command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -scale '$factor'  -scale '1200x1200\!' '$destination'/'$filename'-step-'$i'.jpg'
+
+# sharpen x 0xfactor  
+else
+		factor=$((3 + $RANDOM % 10))
+    	# convert $destination/$filename-step-$(($i-1)).jpg -sharpen 0x$factor $destination/$filename-step-$i.jpg
+    	command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -sharpen 0x'$factor' '$destination'/'$filename'-step-'$i'.jpg'
+fi
+echo $command
+$command
 done
