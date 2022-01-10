@@ -2,7 +2,7 @@
 
 file=spongebob.jpg
 destination=output
-iterations=100
+iterations=10
 while [ ! $# -eq 0 ]
 do
   case "$1" in
@@ -20,10 +20,8 @@ echo 'deep frying file: '$file 'destination: '$destination 'iterations: '$iterat
 extension="${file##*.}"                     # get the extension
 filename="${file%.*}"                       # get the filename
 cp "$file" "${destination}/${filename}-step-0.${extension}"    # rename file by moving it
-
 for (( i = 1; i < $iterations; i++ )); do
-  # operation=$((0 + $RANDOM % 3))
-  operation=
+operation=$((0 + $RANDOM % 3))
   if [[ $operation = "0" ]]; then
     factor=$((100 + $RANDOM % 200))
     # convert $destination/$filename-step-$(($i-1)).jpg -modulate 100,$factor $destination/$filename-step-$i.jpg

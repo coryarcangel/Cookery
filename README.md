@@ -20,7 +20,7 @@ Requires [imagemagick](https://imagemagick.org/script/download.php).
 
 Usage:
 
-    ./deepfry image.jpg
+    ./deepfry.sh -n 5 -o output -f spongebob.jpg
 
 optional args:
 `-f` image_file (default: spongebob.jpg)
