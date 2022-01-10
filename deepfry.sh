@@ -12,8 +12,6 @@ do
             ;;
     -o) destination=$2
             ;;
-    -op) operation=$2
-            ;;
     *) file=$1
   esac
   shift
@@ -23,6 +21,8 @@ extension="${file##*.}"                     # get the extension
 filename="${file%.*}"                       # get the filename
 cp "$file" "${destination}/${filename}-step-0.${extension}"    # rename file by moving it
 for (( i = 1; i < $iterations; i++ )); do
+
+# Random option 
 operation=$((0 + $RANDOM % 5))
   
 # Modulate x factor
@@ -37,26 +37,25 @@ then
     factor=$((1 + $RANDOM % 50))
     # convert $destination/$filename-step-$(($i-1)).jpg -compress JPEG2000 -quality $factor $destination/$filename-step-$i.jpg
     command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -compress JPEG2000 -quality '$factor' '$destination'/'$filename'-step-'$i'.jpg'
-  
-# Brightness x 0xfactor  
+   
+# Contrast x 0xfactor  
 elif [[ $operation = "2" ]];
 then
-    factor=$((10 + $RANDOM % 90))
+    factor=$((10 + $RANDOM % 40))
     # convert $destination/$filename-step-$(($i-1)).jpg -brightness-contrast 0x$factor $destination/$filename-step-$i.jpg
     command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -brightness-contrast 0x'$factor' '$destination'/'$filename'-step-'$i'.jpg'
   
+
 # Edge 
 elif [[ $operation = "3" ]];
 then
     factor=$((1 + $RANDOM % 20))
-    # convert $destination/$filename-step-$(($i-1)).jpg -brightness-contrast 0x$factor $destination/$filename-step-$i.jpg
     command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -edge '$factor' '$destination'/'$filename'-step-'$i'.jpg' 
 
 # Resize 
 elif [[ $operation = "4" ]];
 then
     	factor=$((1 + $RANDOM % 20 + 80))
-    	# convert $destination/$filename-step-$(($i-1)).jpg -brightness-contrast 0x$factor $destination/$filename-step-$i.jpg
     	command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -scale '$factor'  -scale '1200x1200\!' '$destination'/'$filename'-step-'$i'.jpg'
 
 # Sharpen x 0xfactor  
