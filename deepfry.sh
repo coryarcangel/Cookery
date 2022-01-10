@@ -41,6 +41,12 @@ for (( i = 1; i < $iterations; i++ )); do
     factor=$((10 + $RANDOM % 90))
     # convert $destination/$filename-step-$(($i-1)).jpg -brightness-contrast 0x$factor $destination/$filename-step-$i.jpg
     command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -brightness-contrast 0x'$factor' '$destination'/'$filename'-step-'$i'.jpg'
+	elif [[ $operation = "3" ]];
+# edge 
+  then
+    factor=$((1 + $RANDOM % 30))
+    # convert $destination/$filename-step-$(($i-1)).jpg -brightness-contrast 0x$factor $destination/$filename-step-$i.jpg
+    command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -edge '$factor' '$destination'/'$filename'-step-'$i'.jpg'
   else
   # sharpen x 0xfactor
     factor=$((3 + $RANDOM % 10))
