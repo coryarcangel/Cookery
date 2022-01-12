@@ -16,7 +16,8 @@ do
   esac
   shift
 done
-echo 'deep frying file: '$file 'destination: '$destination 'iterations: '$iterations 'operation: '$operation
+size=$(identify -format "%[fx:w]x%[fx:h]" $file)
+echo 'deep frying file: '$file 'destination: '$destination 'iterations: '$iterations 'size: '$size
 extension="${file##*.}"                     # get the extension
 filename="${file%.*}"                       # get the filename
 cp "$file" "${destination}/${filename}-step-0.${extension}"    # rename file by moving it
@@ -50,7 +51,7 @@ then
 elif [[ $operation = "3" ]];
 then
     	factor=$((1 + $RANDOM % 20 + 80))
-    	command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -scale '$factor'  -scale '192x581\!' '$destination'/'$filename'-step-'$i'.jpg'
+    	command='convert '$destination'/'$filename'-step-'$(($i-1))'.jpg -scale '$factor'  -scale '$size\!' '$destination'/'$filename'-step-'$i'.jpg'
 
 # Sharpen x 0xfactor  
 else
