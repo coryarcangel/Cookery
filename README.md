@@ -25,4 +25,5 @@ Usage:
 optional args:
 `-f` image_file (default: spongebob.jpg)
 `-n` iterations (default: 100)
+`-s` save every (default: all)
 `-o` output_directory (default: output)
