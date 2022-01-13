@@ -2,6 +2,4 @@ output/*
 .DS_Store
 #dummy file to allow committing empty output folder
 !output/.gitkeep
-IP.jpg
 scrap.sh
-*.jpg

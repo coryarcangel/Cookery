@@ -25,7 +25,7 @@ extension="${file##*.}"                     # get the extension
 filename="${file%.*}"                       # get the filename
 cp "$file" "wrkn.jpg"    # rename file by moving it
 
-for (( i = 0; i < $iterations; i++ )); do
+for (( i = 1; i <= $iterations; i++ )); do
 
 #Where are we
 echo -n $i'-'
