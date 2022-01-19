@@ -36,7 +36,6 @@ operation=$((0 + $RANDOM % 4))
 # Modulate x factor
 if [[ $operation = "0" ]]; then
     factor=$((100 + $RANDOM % 200))
-    # convert $destination/$filename-step-$(($i-1)).jpg -modulate 100,$factor $destination/$filename-step-$i.jpg
     command='convert wrkn.jpg -modulate 100,'$factor' wrkn.jpg'
     echo $command
 	$command
@@ -46,7 +45,6 @@ elif [[ $operation = "1" ]];
 then
     factor_compress=$((1 + $RANDOM % 100))
     factor_size=$((25 + $RANDOM % 75))
-    # convert $destination/$filename-step-$(($i-1)).jpg -compress JPEG2000 -quality $factor $destination/$filename-step-$i.jpg
     command='convert wrkn.jpg -scale '$factor_size'  wrkn.jpg'
     echo $command
 	$command
@@ -61,7 +59,6 @@ then
 elif [[ $operation = "2" ]];
 then
     factor=$((10 + $RANDOM % 40))
-    # convert $destination/$filename-step-$(($i-1)).jpg -brightness-contrast 0x$factor $destination/$filename-step-$i.jpg
     command='convert wrkn.jpg -brightness-contrast 0x'$factor' wrkn.jpg'
     echo $command
 	$command
@@ -77,7 +74,6 @@ then
 # Sharpen x 0xfactor  
 else
 		factor=$((3 + $RANDOM % 10))
-    	# convert $destination/$filename-step-$(($i-1)).jpg -sharpen 0x$factor $destination/$filename-step-$i.jpg
     	command='wrkn.jpg -sharpen 0x'$factor' wrkn.jpg'
     	echo $command
 		$command
