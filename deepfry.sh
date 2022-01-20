@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-file=spongebob.jpg
+file=selbu.jpg
 destination=output
 iterations=10
 save=1
