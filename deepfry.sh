@@ -31,7 +31,7 @@ for (( i = 1; i <= $iterations; i++ )); do
 echo -n $i'-'
     
 # Random option 
-operation=$((0 + $RANDOM % 5))
+operation=$((0 + $RANDOM % 6))
   
 # Modulate x factor
 if [[ $operation = "0" ]]; then
@@ -76,6 +76,13 @@ elif [[ $operation = "4" ]];
 then
     factor=$((1 + $RANDOM % 30))
     command='convert wrkn.jpg -edge '$factor' wrkn.jpg'
+	echo $command
+	$command
+
+# Normalize
+elif [[ $operation = "5" ]];
+then
+    command='convert wrkn.jpg -normalize wrkn.jpg'
 	echo $command
 	$command
 
