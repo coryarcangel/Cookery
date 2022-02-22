@@ -31,7 +31,7 @@ for (( i = 1; i <= $iterations; i++ )); do
 echo -n $i'-'
     
 # Random option 
-operation=$((0 + $RANDOM % 4))
+operation=$((0 + $RANDOM % 5))
   
 # Modulate x factor
 if [[ $operation = "0" ]]; then
@@ -70,6 +70,14 @@ then
     	command='convert wrkn.jpg -scale '$factor'  -scale '$size\!' wrkn.jpg'
     	echo $command
 		$command
+
+# Edge
+elif [[ $operation = "4" ]];
+then
+    factor=$((1 + $RANDOM % 30))
+    command='convert wrkn.jpg -edge '$factor' wrkn.jpg'
+	echo $command
+	$command
 
 # Sharpen x 0xfactor  
 else
