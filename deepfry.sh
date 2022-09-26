@@ -89,7 +89,7 @@ then
 # Sharpen x 0xfactor  
 else
 		factor=$((3 + $RANDOM % 10))
-    	command='wrkn.jpg -sharpen 0x'$factor' wrkn.jpg'
+    	command='convert wrkn.jpg -sharpen 0x'$factor' wrkn.jpg'
     	echo $command
 		$command
 fi
