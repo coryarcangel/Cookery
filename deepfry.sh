@@ -31,7 +31,7 @@ for (( i = 1; i <= $iterations; i++ )); do
 echo -n $i'-'
     
 # Random option 
-operation=$((0 + $RANDOM % 6))
+operation=$((0 + $RANDOM % 7))
   
 # Modulate x factor
 if [[ $operation = "0" ]]; then
