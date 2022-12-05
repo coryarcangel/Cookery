@@ -1,0 +1,31 @@
+edge 12
+edge 23
+resize 94
+normalize
+normalize
+resize 92
+contrast 26
+edge 11
+edge 25
+compress 25 75
+resize 88
+modulate 266
+contrast 33
+compress 51 38
+resize 82
+normalize
+normalize
+modulate 117
+normalize
+normalize
+15:12:21, Mon Dec 05, 2022.
+edge 23
+edge 25
+edge 14
+normalize
+modulate 222
+compress 96 55
+compress 7 62
+normalize
+normalize
+edge 11

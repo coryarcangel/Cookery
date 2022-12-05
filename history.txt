@@ -1,0 +1,10 @@
+edge 23
+edge 25
+edge 14
+normalize
+modulate 222
+compress 96 55
+compress 7 62
+normalize
+normalize
+edge 11
