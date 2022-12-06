@@ -4,3 +4,8 @@ output/*
 !output/.gitkeep
 scrap.sh
 wrkn.jpg
+*.mp4
+*/*.jpg
+deepfried
+history.txt
+scratch.txt

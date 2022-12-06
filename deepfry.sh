@@ -25,6 +25,8 @@ do
             ;;
     -r) replay=$2
             ;;
+    -l) last=1
+            ;;
     *) file=$1
   esac
   shift
@@ -122,7 +124,7 @@ then
     do
     echo "$line"
     $line
-     if [  $(($i % $save)) -eq 0 ]  #dump every so often. 
+     if [  $(($i % $save)) -eq 0 ] && [ $last -eq 0  ]  #dump every so often. 
     then
         cp "wrkn.jpg" "$destination/$filename-step-$i.jpg"
     fi
@@ -136,7 +138,6 @@ else
 
         # Random option 
         operation=$((0 + $RANDOM % 6))
-        
         if [[ $operation = "0" ]];  then modulate
         elif [[ $operation = "1" ]];   then compress
         elif [[ $operation = "2" ]]; then contrast
@@ -145,16 +146,22 @@ else
         elif [[ $operation = "5" ]]; then normalize
         else sharpen
         fi
-
-        if [  $(($i % $save)) -eq 0 ]  #dump every so often. 
-        then
-            cp "wrkn.jpg" "$destination/$filename-step-$i.jpg"
+        if [[  $last -eq 0 ]]; then
+            if [  $(($i % $save)) -eq 0 ]  #dump every so often. 
+            then
+                cp "wrkn.jpg" "$destination/$filename-step-$i.jpg"
+            elif [  $i -eq $iterations]; then
+                cp "wrkn.jpg" "$destination/$filename-step-$i.jpg"
+            fi
         fi
     done
-
     #save history to scratch file
     echo "$(date '+%H:%m:%S, %a %b %d, %Y.')" >> scratch.txt
     cat $history_out >> scratch.txt
+fi
+
+if [[  $last -eq 1 ]]; then
+    cp "wrkn.jpg" "$destination/$filename-fried.jpg"
 fi
 
 #delete wrnk file
