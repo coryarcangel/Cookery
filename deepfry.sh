@@ -122,9 +122,9 @@ then
     i=1
     while IFS= read -r line
     do
-    echo "$line"
+    echo "$i: "$destination"/"$filename-fried.jpg
     $line
-     if [  $(($i % $save)) -eq 0 ] && [ $last -eq 0  ]  #dump every so often. 
+    if [[  $(($i % $save)) -eq 0  && $last -eq 0  ]];  #dump every so often. 
     then
         cp "wrkn.jpg" "$destination/$filename-step-$i.jpg"
     fi
@@ -139,12 +139,12 @@ else
         # Random option 
         operation=$((0 + $RANDOM % 6))
         if [[ $operation = "0" ]];  then modulate
-        elif [[ $operation = "1" ]];   then compress
-        elif [[ $operation = "2" ]]; then contrast
-        elif [[ $operation = "3" ]]; then resize
-        elif [[ $operation = "4" ]]; then edge
-        elif [[ $operation = "5" ]]; then normalize
-        else sharpen
+            elif [[ $operation = "1" ]];   then compress
+            elif [[ $operation = "2" ]]; then contrast
+            elif [[ $operation = "3" ]]; then resize
+            elif [[ $operation = "4" ]]; then edge
+            elif [[ $operation = "5" ]]; then normalize
+            else sharpen
         fi
         if [[  $last -eq 0 ]]; then
             if [  $(($i % $save)) -eq 0 ]  #dump every so often. 

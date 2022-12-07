@@ -59,8 +59,8 @@ To replay a history file:
 **DEEP FRY A VIDEO**
 
 The `deepfry-video.sh` script requires a .mp4 file and a history file generated while deep frying an image.
-You can also optionally provide a framerate. The default is 30 fps. Here's how to deep fry a video at 60 frames per second, saving all intermediate files in the `video-output` folder:
+You can also optionally provide a framerate. The default is 30 fps. Here's how to deep fry a video at 60 frames per second, saving all generated files in the `video-output` folder:
 
-    ./deepfry-video.sh -r history.txt -r 60 -o video-output vid.mp4
+    ./deepfry-video.sh -r history.txt -fr 60 -o video-output vid.mp4
 
 This script generates individual frames from the video at the specified framerate, saves deep fried versions of each frame following the history file into a `deepfried` subfolder, and recombines those frames back into a video called `out.mp4` in `deepfried`. It also copies over the sound from the source video.
