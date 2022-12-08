@@ -28,7 +28,7 @@ Requires [imagemagick](https://imagemagick.org/script/download.php).
 Video support requires [FFMPEG](ffmpeg.org).
 
 required args:
-- `-f` image_file (default: selbu.jpg) 
+- `-f` image_file (default: spongebob.jpg) 
 
 You can also always add the image file as the last argument without `-f`
 
@@ -45,7 +45,7 @@ optional args:
 
 Usage:
 
-    ./deepfry.sh -n 10 -o output_folder -s 1 -f selbu.jpg
+    ./deepfry.sh -n 10 -o output_folder -s 1 -f spongebob.jpg
   
 
 By default, deep fry steps will be saved to history.txt. T save elsewhere, use `-h` [filename].
@@ -54,7 +54,7 @@ To replay a history file, supply it with the `-r` flag.
 
 To replay a history file: 
 
-    ./deepfry.sh -r history.txt -o output_folder -f selbu.jpg
+    ./deepfry.sh -r history.txt -o output_folder -f spongebob.jpg
 
 **DEEP FRY A VIDEO**
 

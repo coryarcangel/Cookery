@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Begin Defaults
-file=selbu.jpg
+file=spongebob.jpg
 destination=output
 iterations=10
 save=1
