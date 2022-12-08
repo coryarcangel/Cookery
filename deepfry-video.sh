@@ -30,15 +30,15 @@ done
 mkdir -p $destination
 
 filename="${file%.*}"
-ffmpeg -i $file -r $rate $destination/$filename%d.jpg
+ffmpeg -i $file -r $rate $destination/$filename%05d.jpg
 
 seconds=$(ffmpeg -i $file 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
 total_frames=$((seconds * rate))  
 
 mkdir -p $destination/deepfried
 
-for i in $(eval echo "{1..$total_frames}"); do
-#    echo "frame "$i" / "$total_frames
+for i in $(seq -f "%05g" 1 $total_frames); do
+   echo "frame "$i" / "$total_frames
    ./deepfry.sh -r $replay -o "." -l 1 -s 10 $destination/$filename$i.jpg
 done
 
@@ -51,7 +51,7 @@ mv $destination/*-fried* $destination/deepfried
 cd $destination/deepfried
 
 # If there is audio in the source file, this line might help
-# ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i '*.jpg' -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
+ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$filename*-fried.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
 
 
-ffmpeg -y -framerate 30 -pattern_type glob -i '*.jpg' -c:v libx264 -pix_fmt yuv420p out.mp4
+# ffmpeg -y -framerate 30 -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4
