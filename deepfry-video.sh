@@ -37,8 +37,8 @@ total_frames=$((seconds * rate))
 
 mkdir -p $destination/deepfried
 
-for i in $(eval echo "{1..$total_frames}") do
-   echo "frame "$i" / "$total_frames
+for i in $(eval echo "{1..$total_frames}"); do
+#    echo "frame "$i" / "$total_frames
    ./deepfry.sh -r $replay -o "." -l 1 -s 10 $destination/$filename$i.jpg
 done
 
@@ -50,8 +50,8 @@ mv $destination/deepfried/*.jpg $destination/deepfried/old
 mv $destination/*-fried* $destination/deepfried
 cd $destination/deepfried
 
-# Combine all fried frames back into video
-ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i '*.jpg' -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
+# If there is audio in the source file, this line might help
+# ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i '*.jpg' -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
 
-# If there is no audio in the source file, this line might help
-# ffmpeg -y -framerate 30 -pattern_type glob -i '*.jpg' -c:v libx264 -pix_fmt yuv420p out.mp4
+
+ffmpeg -y -framerate 30 -pattern_type glob -i '*.jpg' -c:v libx264 -pix_fmt yuv420p out.mp4

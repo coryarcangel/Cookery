@@ -63,4 +63,4 @@ You can also optionally provide a framerate. The default is 30 fps. Here's how t
 
     ./deepfry-video.sh -r history.txt -fr 60 -o video-output vid.mp4
 
-This script generates individual frames from the video at the specified framerate, saves deep fried versions of each frame following the history file into a `deepfried` subfolder, and recombines those frames back into a video called `out.mp4` in `deepfried`. It also copies over the sound from the source video.
+This script generates individual frames from the video at the specified framerate, saves deep fried versions of each frame following the history file into a `deepfried` subfolder, and recombines those frames back into a video called `out.mp4` in `deepfried`. 
