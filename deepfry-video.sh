@@ -30,6 +30,7 @@ done
 mkdir -p $destination
 
 filename="${file%.*}"
+replayname="${replay%.*}"
 ffmpeg -i $file -r $rate $destination/$filename%05d.jpg
 
 seconds=$(ffmpeg -i $file 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
@@ -56,7 +57,7 @@ ffmpeg -y -framerate 30 -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv4
 # clean up
 cd ..
 rm *.jpg
-cp frames/out.mp4 $filename-$replay.mp4
+cp frames/out.mp4 $filename-$replayname.mp4
 
 # If there is audio in the source file, this line might help
 #ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$filename*-fried.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
