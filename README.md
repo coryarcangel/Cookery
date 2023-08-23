@@ -64,3 +64,26 @@ You can also optionally provide a framerate. The default is 30 fps. Here's how t
     ./deepfry-video.sh -r history.txt -fr 60 -o video-output vid.mp4
 
 This script generates individual frames from the video at the specified framerate, saves deep fried versions of each frame following the history file into a `deepfried` subfolder, and recombines those frames back into a video called `out.mp4` in `deepfried`. 
+
+**DEEP FRY DIRECTOR: -d**
+
+Instead of using a single history file to deep fry all frames of a video, you can provide a sequence of history files and specify which frames they apply to using the Deep Fry Director flag, `-d`. This points to a Director Folder. 
+
+A director folder contains: a director.txt file, and a `history` subfolder.
+The history subfolder contains any history files referenced by the director.txt file.
+
+The format of the director.txt file is `[history file],[last frame]`:
+
+    history1.txt,999
+    history2.txt,1000
+    history3.txt,2000
+    history4.txt
+
+This file will apply history1.txt to frames 0-999, history2.txt to frame 1000, and history3.txt from frame 1001 to 2000, and history4.txt from 2001 to the very last frame.  
+
+    ./deepfry-video.sh -d ./director -fr 60 -o video-output vid.mp4
+
+> **_Hot tip:_**  to see how many frames are in a video, use the `-fc` flag:
+>
+>     ./deepfry-video.sh -fc vid.mp4
+>     total frames: 150
