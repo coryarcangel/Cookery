@@ -87,3 +87,12 @@ This file will apply history1.txt to frames 0-999, history2.txt to frame 1000, a
 >
 >     ./deepfry-video.sh -fc vid.mp4
 >     total frames: 150
+
+**COMMANDER MODE**
+
+Cory's power user deep fry scripts. Make unique directories for each export, and sort handling of the history file ;-) 
+
+output=$(date +"%d-%m-%Y-%H-%M-%S"); mkdir $output;./deepfry.sh -n 10 -o $output -f spongebob.jpg; cp history.txt $output; rm history.txt
+
+output=$(date +"%d-%m-%Y-%H-%M-%S"); mkdir $output; ./deepfry-video.sh -r history.txt -o $output vid.mp4
+
