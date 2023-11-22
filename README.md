@@ -94,5 +94,5 @@ Cory's power user deep fry scripts. Make unique directories for each export, and
 
 output=$(date +"%d-%m-%Y-%H-%M-%S"); mkdir $output;./deepfry.sh -n 10 -o $output -f spongebob.jpg; cp history.txt $output; rm history.txt
 
-output=$(date +"%d-%m-%Y-%H-%M-%S"); mkdir $output; ./deepfry-video.sh -r history.txt -o $output vid.mp4
+output=$(date +"%d-%m-%Y-%H-%M-%S"); mkdir $output; ./deepfry-video.sh -r history.txt -o $output vid.mp4; cp history.txt $output
 
