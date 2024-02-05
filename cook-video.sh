@@ -49,7 +49,7 @@ mkdir -p $destination/frames
 if [ -z "$director" ]; then
     for i in $(seq -f "%05g" 1 $total_frames); do
         echo "frame "$i" / "$total_frames
-        ./deepfry.sh -r $replay -o "." -l  $destination/$filename$i.jpg
+        ./cook.sh -r $replay -o "." -l  $destination/$filename$i.jpg
     done
 else
     $framesRendered=1
@@ -63,26 +63,26 @@ else
         echo "run $chunkHistory until frame $chunkFrames"   
         for j in $(seq -f "%05g" $framesRendered $chunkFrames); do
             echo "frame "$j" / "$total_frames
-            echo 'running: ./deepfry.sh -r '$chunkHistory' -o "." -l '$destination'/'$filename''$j'.jpg'
-            ./deepfry.sh -r $chunkHistory -o "." -l $destination/$filename$j.jpg
+            echo 'running: ./cook.sh -r '$chunkHistory' -o "." -l '$destination'/'$filename''$j'.jpg'
+            ./cook.sh -r $chunkHistory -o "." -l $destination/$filename$j.jpg
         done
         framesRendered=$(($chunkFrames+1))
     done
 fi
 
-# get rid of any old fried frames in case they're in the way
+# get rid of any old cooked frames in case they're in the way
 mkdir -p $destination/frames/old
 mv $destination/frames/*.jpg $destination/frames/old
 
-# move newly fried frames to frames subfolder
-mv $destination/*-fried* $destination/frames
+# move newly cooked frames to frames subfolder
+mv $destination/*-cooked* $destination/frames
 cd $destination/frames
 
-# smash newly fried frames into a video (no audio)
+# smash newly cooked frames into a video (no audio)
 ffmpeg -y -framerate 30 -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4
 
 # clean up
 cd ..; rm *.jpg; cp frames/out.mp4 $filename-$replayname-result.mp4;
 
 # If there is audio in the source file, this line might help
-#ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$filename*-fried.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
+#ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$filename*-cooked.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4

@@ -32,7 +32,7 @@ filename="${file%.*}"
 
 cp "$file" "temp.jpg"
 
-echo 'deep frying file: '$file 'destination: '$destination 'iterations: '$iterations 'size: '$size 'save: '$save
+echo 'cooking file: '$file 'destination: '$destination 'iterations: '$iterations 'size: '$size 'save: '$save
 
 ### START COOK FUNCTIONS
 modulate()  {
@@ -74,7 +74,7 @@ if [[ ! -z $replay ]]; then
     history_out=/dev/null
     i=1
     while IFS= read -r line; do
-    echo "$i: "$destination"/"$filename-fried.jpg
+    echo "$i: "$destination"/"$filename-cooked.jpg
     $line
     if [[  $(($i % $save)) -eq 0  && $last -eq 0  ]]; then #save at the $save interval
         cp "temp.jpg" "$destination/$filename-step-$i.jpg"
@@ -105,7 +105,7 @@ else
     cat $history_out >> scratch.txt #save history to scratch file
 fi
 
-if [[  $last -eq 1 ]]; then cp "temp.jpg" "$destination/$filename-fried.jpg"; fi
+if [[  $last -eq 1 ]]; then cp "temp.jpg" "$destination/$filename-cooked.jpg"; fi
 
 #delete wrnk file
 rm temp.jpg
