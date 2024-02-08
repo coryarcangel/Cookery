@@ -74,7 +74,7 @@ if [[ ! -z $replay ]]; then
     history_out=/dev/null
     i=1
     while IFS= read -r line; do
-    echo "$i: "$destination"/"$filename-cooked.jpg
+    echo -n "$i: "$destination"/"$filename-cooked.jpg" "
     $line
     if [[  $(($i % $save)) -eq 0  && $last -eq 0  ]]; then #save at the $save interval
         cp "temp.jpg" "$destination/$filename-step-$i.jpg"
