@@ -1,0 +1,261 @@
+cookFunction(){
+    # Begin Defaults
+    file=spongebob.jpg
+    destination=$(date +"%d-%m-%Y_%H-%M-%S");
+    iterations=5
+    save=1
+    replay=''
+    history_out='history.txt'
+    # End Defaults
+
+    #receive command line parameters
+    while [ ! $# -eq 0 ]
+    do
+    case "$1" in
+        -f) file=$2;;
+        -n) iterations=$2;;
+        -o) destination=$2;;
+        -s) save=$2;;
+        -h) history_out=$2;;
+        -r) replay=$2;;
+        -l) last=1;;
+        *) file=$1
+    esac
+    shift
+    done
+
+    mkdir -p $destination
+    echo "CMONO"
+    # if history_out file doesnt exist, or the variable is not set create it
+    if [ -z "$history_out" ]; then
+        # cook a single image and save the history to a file then remove it
+        # cook $file
+        rm $destination/$file-cooked.jpg
+        history_out=$destination/history.txt
+        touch $history_out
+        else 
+        history_out=$destination/$history_out
+    fi
+
+    # echo history_out
+    echo "history_out: "$history_out
+
+    if ! [[ $file =~ ".jpg" || $file =~ ".png" || $file =~ ".jpeg" || $file =~ ".tif" ]]; then exit 0; fi
+
+    size=$(identify -format "%[fx:w]x%[fx:h]" $file)
+    filename="${file%.*}"
+
+    cp "$file" "temp.jpg"
+
+    echo 'cooking file: '$file 'destination: '$destination 'iterations: '$iterations 'size: '$size 'save: '$save
+
+    ### START COOK FUNCTIONS
+    modulate()  {
+        factor=${1:-$((100 + $RANDOM % 200))}
+        convert temp.jpg -modulate 100,$factor temp.jpg
+        echo 'modulate '$factor | tee -a $history_out
+    }
+    compress() {
+        factor_compress=${1:-$((1 + $RANDOM % 100))}
+        factor_size=${2:-$((25 + $RANDOM % 75))}
+        convert temp.jpg -scale $factor_size  temp.jpg; 
+        convert temp.jpg -compress JPEG2000 -quality $factor_compress temp.jpg;
+        convert temp.jpg -scale $size\! temp.jpg 
+        echo 'compress '$factor_compress' '$factor_size | tee -a $history_out # echoes the command to $history_out and stdout
+    }
+    contrast() {
+        factor=${1:-$((10 + $RANDOM % 40))}
+        convert temp.jpg -brightness-contrast 0x$factor temp.jpg
+        echo 'contrast '$factor | tee -a $history_out
+    }
+    resize() {
+        factor=${1:-$((1 + $RANDOM % 20 + 80))}
+        convert temp.jpg -scale $factor  -scale $size\! temp.jpg
+        echo 'resize '$factor | tee -a $history_out
+    }
+    edge(){
+        factor=${1:-$((1 + $RANDOM % 30))}
+        convert temp.jpg -edge $factor temp.jpg
+        echo 'edge '$factor | tee -a $history_out
+    }
+    normalize(){
+        convert temp.jpg -normalize temp.jpg
+        echo 'normalize' | tee -a $history_out
+    }
+    ### END TRANSFORM FUNCTIONS
+
+    if [[ ! -z $replay ]]; then
+        input=$replay
+        history_out=/dev/null
+        i=1
+        while IFS= read -r line; do
+        echo -n "$i: "$filename-cooked.jpg" "
+        $line
+        if [[  $(($i % $save)) -eq 0  && $last -eq 0  ]]; then #save at the $save interval
+            cp "temp.jpg" "$destination/$filename-step-$i.jpg"
+        fi
+        i=$((i+1))
+        done < "$input"
+    else   
+        rm $history_out
+        for (( i = 1; i <= $iterations; i++ )); do
+            printf "%02d-" $i
+            operation=$((0 + $RANDOM % 6)) # Pick a random cook function
+            if [[ $operation = "0" ]];  then modulate
+                elif [[ $operation = "1" ]]; then compress
+                elif [[ $operation = "2" ]]; then contrast
+                elif [[ $operation = "3" ]]; then resize
+                elif [[ $operation = "4" ]]; then edge
+                elif [[ $operation = "5" ]]; then normalize
+            fi
+            if [[  $last -eq 0 ]]; then
+                if [  $(($i % $save)) -eq 0 ]; then  #dump every so often. 
+                    cp "temp.jpg" "$destination/$filename-step-$i.jpg"
+                elif [  $i -eq $iterations]; then
+                    cp "temp.jpg" "$destination/$filename-step-$i.jpg"
+                fi
+            fi
+        done
+    fi
+
+    if [[  $last -eq 1 ]]; then 
+        # if filename has a / in it
+        if [[ $filename == *"/"* ]]; then
+            cp "temp.jpg" $filename"-cooked.jpg"; 
+            else 
+            cp "temp.jpg" $destination/$filename"-cooked.jpg";
+        fi
+    fi
+
+    #delete wrnk file
+    rm temp.jpg
+}
+
+cookvFunction(){
+    # Begin Defaults
+    vfile=vid.mp4
+    dest=$(date +"%d-%m-%Y_%H-%M-%S");
+    rate=30 #frames per second
+    vreplay=history.txt
+    director=''
+    frameCheck=0
+    # End Defaults
+
+    #receive command line parameters
+    while [ ! $# -eq 0 ]; do
+        case "$1" in
+            -f) vfile=$2;;
+            -o) dest=$2;;
+            -fr) rate=$2;;
+            -r) vreplay=$2;;
+            -d) director=$2;;
+            -fc) frameCheck=1;;
+            *) vfile=$1
+        esac
+        shift
+    done
+
+    # echo all vars and exit
+    echo "file: "$vfile "dest: "$dest "rate: "$rate "vreplay: "$vreplay "regenerate: "$regenerate "director: "$director "frameCheck: "$frameCheck
+    # exit 0;
+
+    mkdir -p $dest
+
+    vfilename="${vfile%.*}"
+    vreplayname="${vreplay%.*}"
+
+    # get total number of frames
+    seconds=$(ffmpeg -i $vfile 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
+    total_frames=$((seconds * rate))  
+
+    if [ $frameCheck -eq 1 ]; then
+        echo "total frames: "$total_frames
+        exit 0
+    fi
+
+    # convert source video into separate frames
+    ffmpeg -i $vfile -r $rate $dest/$vfilename%05d.jpg
+
+    # create a subfolder for the cooked frames
+    mkdir -p $dest/frames
+
+    # if $director is not equal to "", use the history file
+    if [ -z "$director" ]; then
+        # if vreplay file doesnt exist, exit
+        if [ ! -f $vreplay ]; then
+            echo "# creating history file"
+            cookFunction  -o temp -l spongebob.jpg
+            mv temp/history.txt .
+            rm -r temp
+            vreplay=history.txt
+        fi
+        currentLocation=$(pwd)
+        vreplayAbsolute=$(realpath $vreplay)
+        cd $dest
+        for frame in $(seq -f "%05g" 1 $total_frames); do
+            echo "frame "$frame" / "$total_frames", dest: "$vfilename$frame.jpg
+            cookFunction -r $vreplayAbsolute -o . -l $vfilename$frame.jpg
+        done
+        cd $currentLocation
+    else
+        $framesRendered=1
+        for i in $(cat "$director/director.txt"); do
+            chunkHistory="$director/history/"$(echo $i | cut -d',' -f1) #history file
+            chunkFrames=$(echo $i | cut -d',' -f2) 
+            # if the last line doesnt include a frame, make it the total number of frames
+            if [ -z "$chunkFrames" ] || [ $chunkHistory == "$director/history/"$(echo $i | cut -d',' -f2) ]; then
+                chunkFrames=$total_frames
+            fi
+            echo "run $chunkHistory until frame $chunkFrames"   
+            for j in $(seq -f "%05g" $framesRendered $chunkFrames); do
+                echo "frame "$j" / "$total_frames
+                echo 'running: cook -r '$chunkHistory' -o "." -l '$dest'/'$vfilename''$j'.jpg'
+                cookFunction -r $chunkHistory -o "." -l $dest/$vfilename$j.jpg
+            done
+            framesRendered=$(($chunkFrames+1))
+        done
+    fi
+
+    # move newly cooked frames to frames subfolder
+    mv $dest/*-cooked* $dest/frames
+    cd $dest/frames
+
+    # smash newly cooked frames into a video (no audio)
+    ffmpeg -y -framerate $rate -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4
+
+    # clean up
+    cd ..; rm *.jpg; mv frames/out.mp4 $vfilename-$vreplayname-result.mp4; mv $vreplayAbsolute $vreplay
+
+    # If there is audio in the source file, this line might help
+    #ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$vfilename*-cooked.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
+
+}
+
+# save args to a variable
+args=$@
+while [ ! $# -eq 0 ]; do
+    case "$1" in
+        -f) file=$2;;
+        *) file=$1
+    esac
+    shift
+done
+
+
+
+if [[ $file =~ ".mp4" || $file =~ ".mov" || $file =~ ".avi" || $file =~ ".mkv" ]]; then
+    # if ffmpeg doesnt exist, exit
+    if ! [ -x "$(command -v ffmpeg)" ]; then
+        echo 'Error: ffmpeg is not installed.' >&2
+        exit 1
+    fi
+    cookvFunction $args
+elif [[ $file =~ ".jpg" || $file =~ ".png" || $file =~ ".jpeg" || $file =~ ".tif" ]]; then
+    if ! [ -x "$(command -v convert)" ]; then
+        echo 'Error: imagemagick is not installed.' >&2
+        exit 1
+    fi
+    cookFunction $args
+else
+    echo "file is not a valid image or video file"
+fi
