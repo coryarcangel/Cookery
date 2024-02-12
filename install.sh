@@ -32,4 +32,3 @@ install_program() {
 
 # Example usage
 install_program "cook"
-install_program "cookv"

@@ -25,22 +25,13 @@ cookFunction(){
     done
 
     mkdir -p $destination
-    echo "CMONO"
     # if history_out file doesnt exist, or the variable is not set create it
-    if [ -z "$history_out" ]; then
-        # cook a single image and save the history to a file then remove it
-        # cook $file
-        rm $destination/$file-cooked.jpg
-        history_out=$destination/history.txt
-        touch $history_out
-        else 
-        history_out=$destination/$history_out
+    history_out=$destination/$history_out
+
+    # if replay, copy the history file to the destination
+    if [[ ! -z $replay ]]; then
+        cp $replay $destination
     fi
-
-    # echo history_out
-    echo "history_out: "$history_out
-
-    if ! [[ $file =~ ".jpg" || $file =~ ".png" || $file =~ ".jpeg" || $file =~ ".tif" ]]; then exit 0; fi
 
     size=$(identify -format "%[fx:w]x%[fx:h]" $file)
     filename="${file%.*}"
@@ -89,7 +80,7 @@ cookFunction(){
         history_out=/dev/null
         i=1
         while IFS= read -r line; do
-        echo -n "$i: "$filename-cooked.jpg" "
+        echo -n "$i: "$filename-cooked.jpg
         $line
         if [[  $(($i % $save)) -eq 0  && $last -eq 0  ]]; then #save at the $save interval
             cp "temp.jpg" "$destination/$filename-step-$i.jpg"
@@ -126,12 +117,10 @@ cookFunction(){
             cp "temp.jpg" $destination/$filename"-cooked.jpg";
         fi
     fi
-
-    #delete wrnk file
     rm temp.jpg
 }
 
-cookvFunction(){
+cookVideoFunction(){
     # Begin Defaults
     vfile=vid.mp4
     dest=$(date +"%d-%m-%Y_%H-%M-%S");
@@ -140,8 +129,6 @@ cookvFunction(){
     director=''
     frameCheck=0
     # End Defaults
-
-    #receive command line parameters
     while [ ! $# -eq 0 ]; do
         case "$1" in
             -f) vfile=$2;;
@@ -155,14 +142,11 @@ cookvFunction(){
         shift
     done
 
-    # echo all vars and exit
-    echo "file: "$vfile "dest: "$dest "rate: "$rate "vreplay: "$vreplay "regenerate: "$regenerate "director: "$director "frameCheck: "$frameCheck
-    # exit 0;
-
     mkdir -p $dest
 
     vfilename="${vfile%.*}"
-    vreplayname="${vreplay%.*}"
+    # get the name of the history file without extension or folders
+    vreplayname=$(basename $vreplay)
 
     # get total number of frames
     seconds=$(ffmpeg -i $vfile 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
@@ -222,13 +206,11 @@ cookvFunction(){
 
     # smash newly cooked frames into a video (no audio)
     ffmpeg -y -framerate $rate -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4
-
     # clean up
-    cd ..; rm *.jpg; mv frames/out.mp4 $vfilename-$vreplayname-result.mp4; mv $vreplayAbsolute $vreplay
+    cd ..; rm *.jpg; mv frames/out.mp4 $vfilename-$vreplayname-result.mp4; mv $vreplayAbsolute $vreplayname
 
     # If there is audio in the source file, this line might help
     #ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$vfilename*-cooked.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
-
 }
 
 # save args to a variable
@@ -241,15 +223,13 @@ while [ ! $# -eq 0 ]; do
     shift
 done
 
-
-
 if [[ $file =~ ".mp4" || $file =~ ".mov" || $file =~ ".avi" || $file =~ ".mkv" ]]; then
     # if ffmpeg doesnt exist, exit
     if ! [ -x "$(command -v ffmpeg)" ]; then
         echo 'Error: ffmpeg is not installed.' >&2
         exit 1
     fi
-    cookvFunction $args
+    cookVideoFunction $args
 elif [[ $file =~ ".jpg" || $file =~ ".png" || $file =~ ".jpeg" || $file =~ ".tif" ]]; then
     if ! [ -x "$(command -v convert)" ]; then
         echo 'Error: imagemagick is not installed.' >&2
