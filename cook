@@ -163,9 +163,7 @@ cookVideoFunction(){
     # create a subfolder for the cooked frames
     mkdir -p $dest/frames
 
-    # if $director is not equal to "", use the history file
     if [ -z "$director" ]; then
-        # if vreplay file doesnt exist, exit
         if [ ! -f $vreplay ]; then
             echo "# creating history file"
             cookFunction  -o temp -l spongebob.jpg
@@ -182,27 +180,29 @@ cookVideoFunction(){
         done
         cd $currentLocation
     else
-        $framesRendered=1
-        for i in $(cat "$director/director.txt"); do
-            chunkHistory="$director/history/"$(echo $i | cut -d',' -f1) #history file
+        framesRendered=1
+        directorPath=$(realpath $director)
+        cd $dest
+        for i in $(cat "$directorPath/director.txt"); do
+            chunkHistory="$directorPath/history/"$(echo $i | cut -d',' -f1) #history file
             chunkFrames=$(echo $i | cut -d',' -f2) 
             # if the last line doesnt include a frame, make it the total number of frames
-            if [ -z "$chunkFrames" ] || [ $chunkHistory == "$director/history/"$(echo $i | cut -d',' -f2) ]; then
+            if [ -z "$chunkFrames" ] || [ $chunkHistory == "$directorPath/history/"$(echo $i | cut -d',' -f2) ]; then
                 chunkFrames=$total_frames
             fi
             echo "run $chunkHistory until frame $chunkFrames"   
             for j in $(seq -f "%05g" $framesRendered $chunkFrames); do
                 echo "frame "$j" / "$total_frames
                 echo 'running: cook -r '$chunkHistory' -o "." -l '$dest'/'$vfilename''$j'.jpg'
-                cookFunction -r $chunkHistory -o "." -l $dest/$vfilename$j.jpg
+                cookFunction -r $chunkHistory -o "." -l $vfilename$j.jpg
             done
             framesRendered=$(($chunkFrames+1))
         done
     fi
 
     # move newly cooked frames to frames subfolder
-    mv $dest/*-cooked* $dest/frames
-    cd $dest/frames
+    mv ./*-cooked* ./frames
+    cd ./frames
 
     # smash newly cooked frames into a video (no audio)
     ffmpeg -y -framerate $rate -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4

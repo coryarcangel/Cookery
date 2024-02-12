@@ -6,8 +6,4 @@ history1.txt,50
 history2.txt,60
 history1.txt,70
 history2.txt,80
-history1.txt,90
-history2.txt,100
-history1.txt,110
-history2.txt,120
 history1.txt
