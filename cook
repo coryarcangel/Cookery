@@ -5,6 +5,7 @@ cookFunction(){
     iterations=5
     save=1
     replay=''
+    strength=100
     history_out='history.txt'
     # End Defaults
 
@@ -12,6 +13,7 @@ cookFunction(){
     while [ ! $# -eq 0 ]
     do
     case "$1" in
+        -str) strength=$2;;
         -f) file=$2;;
         -n) iterations=$2;;
         -o) destination=$2;;
@@ -24,6 +26,8 @@ cookFunction(){
     shift
     done
 
+    strength=$(echo "scale=2; $strength / 100" | bc)
+
     mkdir -p $destination
     # if history_out file doesnt exist, or the variable is not set create it
     history_out=$destination/$history_out
@@ -34,6 +38,7 @@ cookFunction(){
     fi
 
     size=$(identify -format "%[fx:w]x%[fx:h]" $file)
+    width=$(echo $size | cut -d'x' -f1)
     filename="${file%.*}"
 
     cp "$file" "temp.jpg"
@@ -42,30 +47,40 @@ cookFunction(){
 
     ### START COOK FUNCTIONS
     modulate()  {
-        factor=${1:-$((100 + $RANDOM % 200))}
+        factor=${1:-$((100 + ($RANDOM % 500)))}
+        factor=$(echo "scale=0; (($factor - 100) * $strength + 100)" | bc| awk '{print int($1)}')
         convert temp.jpg -modulate 100,$factor temp.jpg
-        echo 'modulate '$factor | tee -a $history_out
+        # if [[ ! -z $strength && $strength -gt 1 ]]; then
+            echo 'modulate '$factor | tee -a $history_out
+        # fi
     }
     compress() {
         factor_compress=${1:-$((1 + $RANDOM % 100))}
-        factor_size=${2:-$((25 + $RANDOM % 75))}
-        convert temp.jpg -scale $factor_size  temp.jpg; 
+        # spread between 100 and 1 depending on strength. the higher the strength, the lower the resulting number
+        factor_compress=$(echo "scale=0; (100 - $factor_compress * $strength)" | bc| awk '{print int($1)}')
         convert temp.jpg -compress JPEG2000 -quality $factor_compress temp.jpg;
-        convert temp.jpg -scale $size\! temp.jpg 
-        echo 'compress '$factor_compress' '$factor_size | tee -a $history_out # echoes the command to $history_out and stdout
+        # convert temp.jpg -scale $size\! temp.jpg 
+        echo 'compress '$factor_compress | tee -a $history_out # echoes the command to $history_out and stdout
     }
     contrast() {
-        factor=${1:-$((10 + $RANDOM % 40))}
+        factor=${1:-$((10 + $RANDOM % 200))}
+        factor=$(echo "scale=0; ($factor * $strength)" | bc| awk '{print int($1)}')
         convert temp.jpg -brightness-contrast 0x$factor temp.jpg
         echo 'contrast '$factor | tee -a $history_out
     }
     resize() {
-        factor=${1:-$((1 + $RANDOM % 20 + 80))}
+        factor=${1:-$((1 + $RANDOM % 95 + 5))}
+        # divide this by 100, multiply it times strength, and multiply it times the width of the original image
+        factor=$(echo "scale=2; ($factor / 100  * $width)" | bc)
+        # get factor - size and multiply by strength, then add that to factor
+        factor=$(echo "scale=0; ($factor - $width) * $strength + $width" | bc| awk '{print int($1)}')
         convert temp.jpg -scale $factor  -scale $size\! temp.jpg
         echo 'resize '$factor | tee -a $history_out
     }
     edge(){
         factor=${1:-$((1 + $RANDOM % 30))}
+        # get factor - 30 and multiply by strength, then add that to factor
+        factor=$(echo "scale=0; ($factor - 30) * $strength + 30" | bc | awk '{print int($1)}')
         convert temp.jpg -edge $factor temp.jpg
         echo 'edge '$factor | tee -a $history_out
     }
@@ -79,7 +94,7 @@ cookFunction(){
         input=$replay
         history_out=/dev/null
         i=1
-        while IFS= read -r line; do
+        while IFS= read -r line || [[ -n "$line" ]]; do
         echo -n "$i: "$filename-cooked.jpg
         $line
         if [[  $(($i % $save)) -eq 0  && $last -eq 0  ]]; then #save at the $save interval
@@ -146,7 +161,8 @@ cookVideoFunction(){
 
     vfilename="${vfile%.*}"
     # get the name of the history file without extension or folders
-    vreplayname=$(basename $vreplay)
+    vreplayBasename=$(basename $vreplay)
+    vreplayname="${vreplayBasename%.*}"
 
     # get total number of frames
     seconds=$(ffmpeg -i $vfile 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
@@ -190,16 +206,59 @@ cookVideoFunction(){
             if [ -z "$chunkFrames" ] || [ $chunkHistory == "$directorPath/history/"$(echo $i | cut -d',' -f2) ]; then
                 chunkFrames=$total_frames
             fi
+            frameInChunk=0
+            totalFramesInChunk=$(($chunkFrames-$framesRendered))
             echo "run $chunkHistory until frame $chunkFrames"   
             for j in $(seq -f "%05g" $framesRendered $chunkFrames); do
                 echo "frame "$j" / "$total_frames
                 echo 'running: cook -r '$chunkHistory' -o "." -l '$dest'/'$vfilename''$j'.jpg'
-                cookFunction -r $chunkHistory -o "." -l $vfilename$j.jpg
+                stren=$(echo "scale=2; 100 - ($frameInChunk / $totalFramesInChunk) * 100" | bc | awk '{printf "%d\n", $1}')
+                frameInChunk=$(($frameInChunk+1))
+                echo stren: $stren
+                cookFunction -r $chunkHistory -o "." -l -str $stren $vfilename$j.jpg
             done
             framesRendered=$(($chunkFrames+1))
         done
-    fi
 
+
+        directorArray=()
+        while IFS= read -r line; do
+            directorArray+=("$line")
+        done < "$directorPath/director.txt"
+        # loop through the array
+        framesRendered=1
+        counter=1
+        for i in "${directorArray[@]}"; do
+            nextRow=$(echo ${directorArray[counter]})
+            currentRow=$(echo $i)
+            chunkHistory="$directorPath/history/"$(echo $nextRow | cut -d',' -f1) #history file
+            chunkFrames=$(echo $currentRow | cut -d',' -f2)
+            # if the last line doesnt include a frame, make it the total number of frames
+            if [[ $chunkFrames =~ ^[0-9]+$ ]]; then
+            echo $chunkHistory and $chunkFrames
+                frameInChunk=0
+                totalFramesInChunk=$(($chunkFrames-$framesRendered))
+                # if totalFramesInChunk is less than 1, set to 1
+                if [ $totalFramesInChunk -lt 1 ]; then
+                    totalFramesInChunk=1
+                fi
+                echo "run $chunkHistory until frame $chunkFrames; total frames in chunk: "$totalFramesInChunk" / "$chunkFrames frames rendered: $framesRendered
+                for j in $(seq -f "%05g" $framesRendered $chunkFrames); do
+                    echo "frame "$j" / "$total_frames
+                    stren=$(echo "scale=2; ($frameInChunk / $totalFramesInChunk) * 100" | bc | awk '{printf "%d\n", $1}')
+                    echo 'running: cook -r '$chunkHistory' -o "." -str $stren -l '$dest'/'$vfilename''$j'-cooked.jpg'
+                    frameInChunk=$(($frameInChunk+1))
+                    echo stren: $stren
+                    cookFunction -r $chunkHistory -o "." -l -str $stren $vfilename$j-cooked.jpg
+                    mv $vfilename$j-cooked-cooked.jpg $vfilename$j-cooked.jpg
+                done
+                framesRendered=$(($chunkFrames+1))
+            fi
+            counter=$((counter+1))
+        done
+
+    fi
+    cd $dest
     # move newly cooked frames to frames subfolder
     mv ./*-cooked* ./frames
     cd ./frames
@@ -207,7 +266,7 @@ cookVideoFunction(){
     # smash newly cooked frames into a video (no audio)
     ffmpeg -y -framerate $rate -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4
     # clean up
-    cd ..; rm *.jpg; mv frames/out.mp4 $vfilename-$vreplayname-result.mp4; mv $vreplayAbsolute $vreplayname
+    cd ..; rm *.jpg; mv frames/out.mp4 $vfilename-$vreplayname-result.mp4; mv $vreplayAbsolute $vreplayname'.txt'
 
     # If there is audio in the source file, this line might help
     #ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$vfilename*-cooked.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
