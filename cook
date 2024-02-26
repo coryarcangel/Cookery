@@ -95,7 +95,7 @@ cookFunction(){
         history_out=/dev/null
         i=1
         while IFS= read -r line || [[ -n "$line" ]]; do
-        echo -n "$i: "$filename-cooked.jpg
+        echo -n "$i: "$filename-cooked.jpg / $line
         $line
         if [[  $(($i % $save)) -eq 0  && $last -eq 0  ]]; then #save at the $save interval
             cp "temp.jpg" "$destination/$filename-step-$i.jpg"
@@ -158,11 +158,15 @@ cookVideoFunction(){
     done
 
     mkdir -p $dest
+    dest=$(realpath $dest)
 
     vfilename="${vfile%.*}"
     # get the name of the history file without extension or folders
     vreplayBasename=$(basename $vreplay)
-    vreplayname="${vreplayBasename%.*}"
+    vreplayname="${vreplay%.*}"
+    
+    # echo "director: " $director
+    # exit 0;
 
     # get total number of frames
     seconds=$(ffmpeg -i $vfile 2>&1 | grep "Duration"| cut -d ' ' -f 4 | sed s/,// | sed 's@\..*@@g' | awk '{ split($1, A, ":"); split(A[3], B, "."); print 3600*A[1] + 60*A[2] + B[1] }')
@@ -174,13 +178,13 @@ cookVideoFunction(){
     fi
 
     # convert source video into separate frames
-    ffmpeg -i $vfile -r $rate $dest/$vfilename%05d.jpg
+    ffmpeg -i $vfile -r $rate $dest/$vfilename%05d.jpg  > /dev/null 2>&1
 
     # create a subfolder for the cooked frames
     mkdir -p $dest/frames
 
-    if [ -z "$director" ]; then
-        if [ ! -f $vreplay ]; then
+    if [ -z "$director" ]; then #apply the history file to each frame
+        if [ ! -f $vreplay ]; then #create a history file if it doesnt exist
             echo "# creating history file"
             cookFunction  -o temp -l spongebob.jpg
             mv temp/history.txt .
@@ -196,83 +200,79 @@ cookVideoFunction(){
         done
         cd $currentLocation
     else
-        framesRendered=1
+        vreplayAbsolute=$(realpath $director/$vreplay)
+        directorLines=()
         directorPath=$(realpath $director)
-        cd $dest
-        for i in $(cat "$directorPath/director.txt"); do
-            chunkHistory="$directorPath/history/"$(echo $i | cut -d',' -f1) #history file
-            chunkFrames=$(echo $i | cut -d',' -f2) 
-            # if the last line doesnt include a frame, make it the total number of frames
-            if [ -z "$chunkFrames" ] || [ $chunkHistory == "$directorPath/history/"$(echo $i | cut -d',' -f2) ]; then
-                chunkFrames=$total_frames
-            fi
-            frameInChunk=0
-            totalFramesInChunk=$(($chunkFrames-$framesRendered))
-            echo "run $chunkHistory until frame $chunkFrames"   
-            for j in $(seq -f "%05g" $framesRendered $chunkFrames); do
-                echo "frame "$j" / "$total_frames
-                echo 'running: cook -r '$chunkHistory' -o "." -l '$dest'/'$vfilename''$j'.jpg'
-                stren=$(echo "scale=2; 100 - ($frameInChunk / $totalFramesInChunk) * 100" | bc | awk '{printf "%d\n", $1}')
-                frameInChunk=$(($frameInChunk+1))
-                echo stren: $stren
-                cookFunction -r $chunkHistory -o "." -l -str $stren $vfilename$j.jpg
-            done
-            framesRendered=$(($chunkFrames+1))
-        done
-
-
-        directorArray=()
         while IFS= read -r line; do
-            directorArray+=("$line")
+            directorLines+=("$line")
         done < "$directorPath/director.txt"
-        # loop through the array
         framesRendered=1
-        counter=1
-        for i in "${directorArray[@]}"; do
-            nextRow=$(echo ${directorArray[counter]})
-            currentRow=$(echo $i)
-            chunkHistory="$directorPath/history/"$(echo $nextRow | cut -d',' -f1) #history file
-            chunkFrames=$(echo $currentRow | cut -d',' -f2)
-            # if the last line doesnt include a frame, make it the total number of frames
-            if [[ $chunkFrames =~ ^[0-9]+$ ]]; then
-            echo $chunkHistory and $chunkFrames
-                frameInChunk=0
-                totalFramesInChunk=$(($chunkFrames-$framesRendered))
-                # if totalFramesInChunk is less than 1, set to 1
-                if [ $totalFramesInChunk -lt 1 ]; then
-                    totalFramesInChunk=1
-                fi
-                echo "run $chunkHistory until frame $chunkFrames; total frames in chunk: "$totalFramesInChunk" / "$chunkFrames frames rendered: $framesRendered
-                for j in $(seq -f "%05g" $framesRendered $chunkFrames); do
-                    echo "frame "$j" / "$total_frames
-                    stren=$(echo "scale=2; ($frameInChunk / $totalFramesInChunk) * 100" | bc | awk '{printf "%d\n", $1}')
-                    echo 'running: cook -r '$chunkHistory' -o "." -str $stren -l '$dest'/'$vfilename''$j'-cooked.jpg'
-                    frameInChunk=$(($frameInChunk+1))
-                    echo stren: $stren
-                    cookFunction -r $chunkHistory -o "." -l -str $stren $vfilename$j-cooked.jpg
-                    mv $vfilename$j-cooked-cooked.jpg $vfilename$j-cooked.jpg
-                done
-                framesRendered=$(($chunkFrames+1))
-            fi
-            counter=$((counter+1))
-        done
+        cd $dest
+        for line in "${directorLines[@]}"; do
+            IFS=',' read -r -a array <<< "$line"
+            nextLineFull=${directorLines[$i+1]}
+            IFS=',' read -r -a nextLine <<< "$nextLineFull"
+            # the frame number is the first element. the second element is the required history file.
+            frameNumber=${array[0]}
+            requiredHistoryFile=$(realpath "$directorPath/history/${array[1]}")
+            optionalHistoryFile=${array[2]}
+    # echo these two values
+            echo "requiredHistoryFile: $requiredHistoryFile"
+            echo "optionalHistoryFile: $optionalHistoryFile"
 
+            nextFrameNumber=${nextLine[0]}
+            # if nextFrameNumber is blank, use total_frames
+            if [[ -z $nextFrameNumber ]]; then
+                nextFrameNumber=$((total_frames))
+                # requiredHistoryFile=$(realpath "$directorPath/history/${array[0]}")
+                # optionalHistoryFile=${array[1]}
+            fi
+            echo "$frameNumber-$nextFrameNumber $requiredHistoryFile"
+            # cook file with history file
+            for j in $(seq -f "%05g" $framesRendered $nextFrameNumber); do
+                # calculate strength
+                stren=$(echo "scale=2; 100 - ($j / $nextFrameNumber) * 100" | bc | awk '{printf "%d\n", $1}')
+                # if there's not optional file, set strength to 100
+                if [[ -z $optionalHistoryFile ]]; then
+                    stren=100
+                fi
+                echo "frame "$j" / "$total_frames
+                echo 'running: cook -r '$requiredHistoryFile' -o "." -str '$stren' -l '$dest'/'$vfilename''$j'.jpg from pwd: '$PWD
+                echo "keyframe 1 stren: "$stren
+                cookFunction -r $requiredHistoryFile -o "." -str $stren -l $vfilename$j.jpg
+                pid=$!
+                wait $pid
+                # if optional history file exists, cook with it using calculated strength
+                if [[ ! -z $optionalHistoryFile ]]; then
+                    echo 'running: cook -r '$optionalHistoryFile' -o "." -l '$dest'/'$vfilename''$j'.jpg'
+                    stren=$((100-$stren))
+                    echo "keyframe 2 stren: "$stren
+                    cookFunction -r $(realpath "$directorPath/history/${optionalHistoryFile}") -o "." -l -str $stren $vfilename$j-cooked.jpg                    
+                    pid=$!
+                    wait $pid
+                    mv $vfilename$j-cooked-cooked.jpg $vfilename$j-cooked.jpg
+                fi
+            done
+            framesRendered=$(($nextFrameNumber+1))
+            i=$((i+1))
+        done
     fi
     cd $dest
     # move newly cooked frames to frames subfolder
-    mv ./*-cooked* ./frames
+    mv $dest/*-cooked* $dest/frames
+    pwd
     cd ./frames
 
     # smash newly cooked frames into a video (no audio)
-    ffmpeg -y -framerate $rate -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4
+    ffmpeg -y -framerate $rate -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4  > /dev/null 2>&1
     # clean up
-    cd ..; rm *.jpg; mv frames/out.mp4 $vfilename-$vreplayname-result.mp4; mv $vreplayAbsolute $vreplayname'.txt'
-
+    cd ..; echo 'frames/out.mp4 '$vfilename'-'$vreplayname'-result.mp4'; rm *.jpg; 
+    mv frames/out.mp4 $vfilename-$vreplayname-result.mp4; 
+    # mv $director"/history/"$vreplayname'.txt' $vreplayname'.txt';
     # If there is audio in the source file, this line might help
     #ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$vfilename*-cooked.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
 }
 
-# save args to a variable
 args=$@
 while [ ! $# -eq 0 ]; do
     case "$1" in
@@ -283,7 +283,6 @@ while [ ! $# -eq 0 ]; do
 done
 
 if [[ $file =~ ".mp4" || $file =~ ".mov" || $file =~ ".avi" || $file =~ ".mkv" ]]; then
-    # if ffmpeg doesnt exist, exit
     if ! [ -x "$(command -v ffmpeg)" ]; then
         echo 'Error: ffmpeg is not installed.' >&2
         exit 1

@@ -1,9 +1,1 @@
-history1.txt,10
-history2.txt,20
-history3.txt,30
-history2.txt,40
-history1.txt,50
-history2.txt,60
-history1.txt,70
-history2.txt,80
-history1.txt
+1,history2.txt,history3.txt
