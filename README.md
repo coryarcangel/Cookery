@@ -33,7 +33,7 @@ required args:
 You can also always add the image file as the last argument without `-f`
 
 optional args:
-- `-n` iterations (default: 10)
+- `-n` iterations (default: 5)
 - `-s` save every (default: 1)
 - `-h` history file output (default: history.txt)
 - `-r` file to replay (default: null)
