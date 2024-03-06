@@ -160,6 +160,11 @@ cookVideoFunction(){
     mkdir -p $dest
     dest=$(realpath $dest)
 
+    vfileName=$(basename $vfile)
+
+    cp $vfile $dest
+    vfile=$(realpath $dest/$vfileName)
+
     vfilename="${vfile%.*}"
     # get the name of the history file without extension or folders
     vreplayBasename=$(basename $vreplay)
@@ -178,7 +183,8 @@ cookVideoFunction(){
     fi
 
     # convert source video into separate frames
-    ffmpeg -i $vfile -r $rate $dest/$vfilename%05d.jpg  > /dev/null 2>&1
+    ffmpeg -i $vfile -r $rate $vfilename%05d.jpg  > /dev/null 2>&1
+    echo 'ffmpeg -i '$vfile' -r '$rate' '$vfilename'%05d.jpg  > /dev/null 2>&1'
 
     # create a subfolder for the cooked frames
     mkdir -p $dest/frames
@@ -195,7 +201,8 @@ cookVideoFunction(){
         vreplayAbsolute=$(realpath $vreplay)
         cd $dest
         for frame in $(seq -f "%05g" 1 $total_frames); do
-            echo "frame "$frame" / "$total_frames", dest: "$vfilename$frame.jpg
+            # echo "frame "$frame" / "$total_frames", dest: "$vfilename$frame.jpg
+            echo 'cookFunction -r '$vreplayAbsolute' -o . -l '$vfilename$frame'.jpg'
             cookFunction -r $vreplayAbsolute -o . -l $vfilename$frame.jpg
         done
         cd $currentLocation
@@ -262,7 +269,6 @@ cookVideoFunction(){
     mv $dest/*-cooked* $dest/frames
     pwd
     cd ./frames
-
     # smash newly cooked frames into a video (no audio)
     ffmpeg -y -framerate $rate -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4  > /dev/null 2>&1
     # clean up
@@ -282,6 +288,7 @@ while [ ! $# -eq 0 ]; do
     shift
 done
 
+
 if [[ $file =~ ".mp4" || $file =~ ".mov" || $file =~ ".avi" || $file =~ ".mkv" ]]; then
     if ! [ -x "$(command -v ffmpeg)" ]; then
         echo 'Error: ffmpeg is not installed.' >&2
@@ -295,5 +302,5 @@ elif [[ $file =~ ".jpg" || $file =~ ".png" || $file =~ ".jpeg" || $file =~ ".tif
     fi
     cookFunction $args
 else
-    echo "file is not a valid image or video file"
+    echo "file is not a valid image or video filez"
 fi
