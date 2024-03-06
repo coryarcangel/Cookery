@@ -103,7 +103,7 @@ cookFunction(){
         i=$((i+1))
         done < "$input"
     else   
-        rm $history_out
+        ### rm $history_out
         for (( i = 1; i <= $iterations; i++ )); do
             printf "%02d-" $i
             operation=$((0 + $RANDOM % 6)) # Pick a random cook function
