@@ -58,10 +58,13 @@ To replay a history file:
 
 **COOK A VIDEO**
 
-The `cook-video.sh` script requires a .mp4 file and a history file generated while cooking an image.
+Video files work, too:
+
+    ./cook.sh -r history.txt -o video-output vid.mp4
+   
 You can also optionally provide a framerate. The default is 30 fps. Here's how to cook a video at 60 frames per second, saving all generated files in the `video-output` folder:
 
-    ./cook-video.sh -r history.txt -fr 60 -o video-output vid.mp4
+    ./cook.sh -r history.txt -fr 60 -o video-output vid.mp4
 
 This script generates individual frames from the video at the specified framerate, saves cooked versions of each frame following the history file into a `cooked` subfolder, and recombines those frames back into a video called `out.mp4` in `cooked`. 
 
@@ -82,9 +85,9 @@ This file will apply history1.txt to frames 1-199.
 Then from frame 200-799, history2.txt will be applied with decreasing strength, while history3.txt will be applied with increasing strength. This achieves a keyframe-like effect.
 Then history3.txt will be applied from frame 800 to the final frame.
 
-    ./cook-video.sh -d ./director -fr 60 -o video-output vid.mp4
+    ./cook.sh -d ./director -fr 60 -o video-output vid.mp4
 
 > **_Hot tip:_**  to see how many frames are in a video, use the `-fc` flag:
 >
->     ./cook-video.sh -fc vid.mp4
+>     ./cook.sh -fc vid.mp4
 >     total frames: 150
