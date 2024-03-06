@@ -43,27 +43,25 @@ optional args:
 - `-l` only generate last image (default: false. just include -l to turn on)
   - `-n` argument will be ignored
 
-**INSTALLATION:**
+Usage:
 
-Run the installation script to add the `cook` executable to your path:
-
-    sudo install.sh
-
-**USAGE:**
-
-    cook -n 10 -o output_folder spongebob.jpg
+    ./cook.sh -n 10 -o output_folder -s 1 -f spongebob.jpg
   
 
-By default, cooking steps will be saved to history.txt. To save elsewhere, use `-h` [filename].
-To replay a history file, supply it with the `-r` flag: 
+By default, cooking steps will be saved to history.txt. T save elsewhere, use `-h` [filename].
+All history is also appended to scratch.txt as a backup in case a good sequence gets lost. 
+To replay a history file, supply it with the `-r` flag.
 
-    cook -r history.txt -o output_folder -f spongebob.jpg
+To replay a history file: 
+
+    ./cook.sh -r history.txt -o output_folder -f spongebob.jpg
 
 **COOK A VIDEO**
 
-`cook` works with video! You can also optionally provide a framerate for your output file. The default is 30 fps. Here's how to cook a video at 60 frames per second, saving all generated files in the `cooked` folder:
+The `cook-video.sh` script requires a .mp4 file and a history file generated while cooking an image.
+You can also optionally provide a framerate. The default is 30 fps. Here's how to cook a video at 60 frames per second, saving all generated files in the `video-output` folder:
 
-    cook -r history.txt -fr 60 -o video-output vid.mp4
+    ./cook-video.sh -r history.txt -fr 60 -o video-output vid.mp4
 
 This script generates individual frames from the video at the specified framerate, saves cooked versions of each frame following the history file into a `cooked` subfolder, and recombines those frames back into a video called `out.mp4` in `cooked`. 
 
@@ -84,9 +82,9 @@ This file will apply history1.txt to frames 1-199.
 Then from frame 200-799, history2.txt will be applied with decreasing strength, while history3.txt will be applied with increasing strength. This achieves a keyframe-like effect.
 Then history3.txt will be applied from frame 800 to the final frame.
 
-    cook -d ./director -fr 60 -o video-output vid.mp4
+    ./cook-video.sh -d ./director -fr 60 -o video-output vid.mp4
 
 > **_Hot tip:_**  to see how many frames are in a video, use the `-fc` flag:
 >
->     cook -fc vid.mp4
+>     ./cook-video.sh -fc vid.mp4
 >     total frames: 150
