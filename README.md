@@ -23,9 +23,9 @@ unknown
 
 **COOKERY**
 
-Requires [imagemagick](https://imagemagick.org/script/download.php).
+A "deep frying" micro-service which can randomly generate "deep frying" scores, and playback those scores on an image or video file. 
 
-Video support requires [FFMPEG](ffmpeg.org).
+Requires [imagemagick](https://imagemagick.org/script/download.php). Video support requires [FFMPEG](ffmpeg.org).
 
 required args:
 - `-f` image_file (default: spongebob.jpg) 
