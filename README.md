@@ -25,7 +25,7 @@ unknown
 
 A "deep frying" micro-service which can randomly generate "deep frying" scores, and playback those scores on an image or video file (with key-framing!). 
 
-Requires [imagemagick](https://imagemagick.org/script/download.php). Video support requires [FFMPEG](ffmpeg.org).
+Requires [imagemagick](https://imagemagick.org/script/download.php), realpath, and video support requires [FFMPEG](ffmpeg.org).
 
 required args:
 - `-f` image_file (default: spongebob.jpg) 
@@ -81,7 +81,7 @@ The format of the director.txt file is `[starting frame],[required history file 
     800,history3.txt
 
 This file will apply history1.txt to frames 1-199. 
-Then from frame 200-799, history2.txt will be applied with decreasing strength, while history3.txt will be applied with increasing strength. This achieves a keyframe-like effect.
+Then from frame 200-799, history2.txt will be applied with decreasing strength, while history3.txt will be applied with increasing strength. This achieves a keyframe-like effect (!!!!!!!)
 Then history3.txt will be applied from frame 800 to the final frame.
 
     cook -d ./director -fr 60 -o video-output vid.mp4
