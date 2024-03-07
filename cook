@@ -267,8 +267,9 @@ cookVideoFunction(){
     # smash newly cooked frames into a video (no audio)
     ffmpeg -y -framerate $rate -pattern_type glob -i "*.jpg" -c:v libx264 -pix_fmt yuv420p out.mp4  > /dev/null 2>&1
     # clean up
-    cd ..; echo 'frames/out.mp4 '$vfilename'-'$vreplayname'-result.mp4'; rm *.jpg; 
-    mv frames/out.mp4 $vfilename-$vreplayname-result.mp4; 
+    vreplayname_strip="${vreplayname//\//-}"
+    cd ..; echo 'frames/out.mp4 '$vfilename'-'$vreplayname_strip'-result.mp4'; rm *.jpg; 
+    mv frames/out.mp4 $vfilename-$vreplayname_strip-result.mp4; 
     # mv $director"/history/"$vreplayname'.txt' $vreplayname'.txt';
     # If there is audio in the source file, this line might help
     #ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$vfilename*-cooked.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
