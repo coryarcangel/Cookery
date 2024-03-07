@@ -23,7 +23,7 @@ unknown
 
 **COOKERY**
 
-A "deep frying" micro-service which can randomly generate "deep frying" scores, and playback those scores on an image or video file. 
+A "deep frying" micro-service which can randomly generate "deep frying" scores, and playback those scores on an image or video file (with key-framing!). 
 
 Requires [imagemagick](https://imagemagick.org/script/download.php). Video support requires [FFMPEG](ffmpeg.org).
 
