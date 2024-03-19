@@ -69,12 +69,11 @@ This script generates individual frames from the video at the specified framerat
 
 **COOKERY DIRECTOR: -d**
 
-Instead of using a single history file to cook all frames of a video, you can provide a sequence of history files and specify which frames they apply to using the Cookery Director flag, `-d`. This points to a Director Folder. 
+Instead of using a single history file to cook all frames of a video, you can provide a combination of history files and specify which frames they apply to using the Cookery Director flag, `-d`. This points to a director file. 
 
-A director folder contains: a director.txt file, and a `history` subfolder.
-The history subfolder contains any history files referenced by the director.txt file.
+The director file contains one or more lines containing this format: `[starting frame],[required history file #1],[optional history file #2]`.
 
-The format of the director.txt file is `[starting frame],[required history file #1],[optional history file #2]`:
+For example:
 
     1,history1.txt
     200,history2.txt,history3.txt
@@ -82,7 +81,7 @@ The format of the director.txt file is `[starting frame],[required history file 
 
 This file will apply history1.txt to frames 1-199. 
 Then from frame 200-799, history2.txt will be applied with decreasing strength, while history3.txt will be applied with increasing strength. This achieves a keyframe-like effect (!!!!!!!)
-Then history3.txt will be applied from frame 800 to the final frame.
+Then history3.txt will be applied from frame 800 to the final frame. Each history file is given as its relative path from the director file.
 
     cook -d ./director -fr 60 -o video-output vid.mp4
 

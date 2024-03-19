@@ -202,13 +202,28 @@ cookVideoFunction(){
             cookFunction -r $vreplayAbsolute -o . -l $vfilename$frame.jpg
         done
         cd $currentLocation
-    else
-        vreplayAbsolute=$(realpath $director/$vreplay)
+    else # director mode
         directorLines=()
-        directorPath=$(realpath $director)
+        # directorPath=$(realpath $director)
+        directorPath=$(echo $director | rev | cut -d'/' -f2- | rev)
+        # real path of the basename of the director file leading up to the filename
+        directorFolderName=$(dirname $director)
+        directorFolder=$(realpath $directorFolderName)
+        # get rid of everything after the last / in the path
+        # directorRelative=$(echo $director | rev | cut -d'/' -f2- | rev)
+        # if direcvtorRelative is empty, set it to .
+        if [[ -z $directorRelative ]]; then
+            directorRelative="."
+        fi
+        # echo all these variables
+        echo "director: "$director
+        echo "directorPath: "$directorPath
+        echo "directorFolderName: "$directorFolderName
+        echo "directorFolder: "$directorFolder
+        # echo "directorRelative: "$directorRelative
         while IFS= read -r line; do
             directorLines+=("$line")
-        done < "$directorPath/director.txt"
+        done < "$director"
         framesRendered=1
         cd $dest
         for line in "${directorLines[@]}"; do
@@ -216,8 +231,9 @@ cookVideoFunction(){
             nextLineFull=${directorLines[$i+1]}
             IFS=',' read -r -a nextLine <<< "$nextLineFull"
             # the frame number is the first element. the second element is the required history file.
+            
             frameNumber=${array[0]}
-            requiredHistoryFile=$(realpath "$directorPath/history/${array[1]}")
+            requiredHistoryFile=$(realpath "$directorFolder/${array[1]}")
             optionalHistoryFile=${array[2]}
             echo "requiredHistoryFile: $requiredHistoryFile"
             echo "optionalHistoryFile: $optionalHistoryFile"
@@ -249,7 +265,7 @@ cookVideoFunction(){
                     echo 'running: cook -r '$optionalHistoryFile' -o "." -l '$dest'/'$vfilename''$j'.jpg'
                     stren=$((100-$stren))
                     echo "keyframe 2 stren: "$stren
-                    cookFunction -r $(realpath "$directorPath/history/${optionalHistoryFile}") -o "." -l -str $stren $vfilename$j-cooked.jpg                    
+                    cookFunction -r $(realpath "$directorFolder/${optionalHistoryFile}") -o "." -l -str $stren $vfilename$j-cooked.jpg                    
                     pid=$!
                     wait $pid
                     mv $vfilename$j-cooked-cooked.jpg $vfilename$j-cooked.jpg
