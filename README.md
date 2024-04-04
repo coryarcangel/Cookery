@@ -47,7 +47,7 @@ optional args:
 
 Run the installation script to add the `cook` executable to your path:
 
-    sudo install.sh
+    sudo ./install.sh
 
 **USAGE:**
 
