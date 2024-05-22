@@ -6,7 +6,7 @@ cookFunction(){
     save=1
     replay=''
     strength=100
-    history_out='history.txt'
+    recipe_out='recipe.txt'
     # End Defaults
 
     #receive command line parameters
@@ -18,7 +18,7 @@ cookFunction(){
         -n) iterations=$2;;
         -o) destination=$2;;
         -s) save=$2;;
-        -h) history_out=$2;;
+        -h) recipe_out=$2;;
         -r) replay=$2;;
         -l) last=1;;
         *) file=$1
@@ -29,10 +29,10 @@ cookFunction(){
     strength=$(echo "scale=2; $strength / 100" | bc)
 
     mkdir -p $destination
-    # if history_out file doesnt exist, or the variable is not set create it
-    history_out=$destination/$history_out
+    # if recipe_out file doesnt exist, or the variable is not set create it
+    recipe_out=$destination/$recipe_out
 
-    # if replay, copy the history file to the destination
+    # if replay, copy the recipe file to the destination
     if [[ ! -z $replay ]]; then
         cp $replay $destination
     fi
@@ -51,22 +51,23 @@ cookFunction(){
         factor=$(echo "scale=0; (($factor - 100) * $strength + 100)" | bc| awk '{print int($1)}')
         convert temp.jpg -modulate 100,$factor temp.jpg
         # if [[ ! -z $strength && $strength -gt 1 ]]; then
-            echo 'modulate '$factor | tee -a $history_out
+            echo 'modulate '$factor | tee -a $recipe_out
         # fi
     }
     compress() {
         factor_compress=${1:-$((1 + $RANDOM % 100))}
         # spread between 100 and 1 depending on strength. the higher the strength, the lower the resulting number
-        factor_compress=$(echo "scale=0; (100 - $factor_compress * $strength)" | bc| awk '{print int($1)}')
-        convert temp.jpg -compress JPEG2000 -quality $factor_compress temp.jpg;
+        factor_compress=$(echo "scale=0; (101 - $factor_compress * $strength)" | bc| awk '{print int($1)}')
+        convert temp.jpg -compress JPEG2000 -quality $factor_compress temp.jpg
+        echo 'convert temp.jpg -compress JPEG2000 -quality '$factor_compress' temp.jpg'
         # convert temp.jpg -scale $size\! temp.jpg 
-        echo 'compress '$factor_compress | tee -a $history_out # echoes the command to $history_out and stdout
+        echo 'compress '$factor_compress | tee -a $recipe_out # echoes the command to $recipe_out and stdout
     }
     contrast() {
         factor=${1:-$((10 + $RANDOM % 200))}
         factor=$(echo "scale=0; ($factor * $strength)" | bc| awk '{print int($1)}')
         convert temp.jpg -brightness-contrast 0x$factor temp.jpg
-        echo 'contrast '$factor | tee -a $history_out
+        echo 'contrast '$factor | tee -a $recipe_out
     }
     resize() {
         factor=${1:-$((1 + $RANDOM % 95 + 5))}
@@ -75,24 +76,24 @@ cookFunction(){
         # get factor - size and multiply by strength, then add that to factor
         factor=$(echo "scale=0; ($factor - $width) * $strength + $width" | bc| awk '{print int($1)}')
         convert temp.jpg -scale $factor  -scale $size\! temp.jpg
-        echo 'resize '$factor | tee -a $history_out
+        echo 'resize '$factor | tee -a $recipe_out
     }
     edge(){
         factor=${1:-$((1 + $RANDOM % 30))}
         # get factor - 30 and multiply by strength, then add that to factor
         factor=$(echo "scale=0; ($factor - 30) * $strength + 30" | bc | awk '{print int($1)}')
         convert temp.jpg -edge $factor temp.jpg
-        echo 'edge '$factor | tee -a $history_out
+        echo 'edge '$factor | tee -a $recipe_out
     }
     normalize(){
         convert temp.jpg -normalize temp.jpg
-        echo 'normalize' | tee -a $history_out
+        echo 'normalize' | tee -a $recipe_out
     }
     ### END TRANSFORM FUNCTIONS
 
     if [[ ! -z $replay ]]; then
         input=$replay
-        history_out=/dev/null
+        recipe_out=/dev/null
         i=1
         while IFS= read -r line || [[ -n "$line" ]]; do
         # echo -n "$i: "$filename-cooked.jpg / $line
@@ -139,7 +140,7 @@ cookVideoFunction(){
     vfile=vid.mp4
     dest=$(date +"%d-%m-%Y_%H-%M-%S");
     rate=30 #frames per second
-    vreplay=history.txt
+    vreplay=recipe.txt
     director=''
     frameCheck=0
     skip=1
@@ -167,7 +168,7 @@ cookVideoFunction(){
     vfile=$(realpath $dest/$vfileName)
 
     vfilename="${vfile%.*}"
-    # get the name of the history file without extension or folders
+    # get the name of the recipe file without extension or folders
     vreplayBasename=$(basename $vreplay)
     vreplayname="${vreplay%.*}"
 
@@ -187,13 +188,13 @@ cookVideoFunction(){
     # create a subfolder for the cooked frames
     mkdir -p $dest/frames
 
-    if [ -z "$director" ]; then #apply the history file to each frame
-        if [ ! -f $vreplay ]; then #create a history file if it doesnt exist
-            echo "# creating history file"
+    if [ -z "$director" ]; then #apply the recipe file to each frame
+        if [ ! -f $vreplay ]; then #create a recipe file if it doesnt exist
+            echo "# creating recipe file"
             cookFunction  -o temp -l spongebob.jpg
-            mv temp/history.txt .
+            mv temp/recipe.txt .
             rm -r temp
-            vreplay=history.txt
+            vreplay=recipe.txt
         fi
         currentLocation=$(pwd)
         vreplayAbsolute=$(realpath $vreplay)
@@ -235,43 +236,43 @@ cookVideoFunction(){
             IFS=',' read -r -a array <<< "$line"
             nextLineFull=${directorLines[$frame+1]}
             IFS=',' read -r -a nextLine <<< "$nextLineFull"
-            # the frame number is the first element. the second element is the required history file.
+            # the frame number is the first element. the second element is the required recipe file.
             
             frameNumber=${array[0]}
-            requiredHistoryFile=$(realpath "$directorFolder/${array[1]}")
-            optionalHistoryFile=${array[2]}
-            echo "requiredHistoryFile: $requiredHistoryFile"
-            echo "optionalHistoryFile: $optionalHistoryFile"
+            requiredRecipeFile=$(realpath "$directorFolder/${array[1]}")
+            optionalRecipeFile=${array[2]}
+            echo "requiredRecipeFile: $requiredRecipeFile"
+            echo "optionalRecipeFile: $optionalRecipeFile"
 
             nextFrameNumber=${nextLine[0]}
             # if nextFrameNumber is blank, use total_frames
             if [[ -z $nextFrameNumber ]]; then
                 nextFrameNumber=$((total_frames))
-                # requiredHistoryFile=$(realpath "$directorPath/history/${array[0]}")
-                # optionalHistoryFile=${array[1]}
+                # requiredRecipeFile=$(realpath "$directorPath/recipe/${array[0]}")
+                # optionalRecipeFile=${array[1]}
             fi
             # echo "next line: $nextLineFull, $directorLines[$frame]"
-            echo "$frameNumber-$nextFrameNumber $requiredHistoryFile"
-            # cook file with history file
+            echo "$frameNumber-$nextFrameNumber $requiredRecipeFile"
+            # cook file with recipe file
             for j in $(seq -f "%05g" $framesRendered $nextFrameNumber); do
                 # calculate strength
                 stren=$(echo "scale=2; 100 - ($j / $nextFrameNumber) * 100" | bc | awk '{printf "%d\n", $1}')
                 # if there's not optional file, set strength to 100
-                if [[ -z $optionalHistoryFile ]]; then
+                if [[ -z $optionalRecipeFile ]]; then
                     stren=100
                 fi
                 echo "frame "$j" / "$total_frames
-                echo 'running: cook -r '$requiredHistoryFile' -o "." -str '$stren' -l '$dest'/'$vfilename''$j'.jpg from pwd: '$PWD
+                echo 'running: cook -r '$requiredRecipeFile' -o "." -str '$stren' -l '$dest'/'$vfilename''$j'.jpg from pwd: '$PWD
                 echo "keyframe 1 stren: "$stren
-                cookFunction -r $requiredHistoryFile -o "." -str $stren -l $vfilename$j.jpg > /dev/null 2>&1
+                cookFunction -r $requiredRecipeFile -o "." -str $stren -l $vfilename$j.jpg > /dev/null 2>&1
                 pid=$!
                 wait $pid
-                # if optional history file exists, cook with it using calculated strength
-                if [[ ! -z $optionalHistoryFile ]]; then
-                    echo 'running: cook -r '$optionalHistoryFile' -o "." -l '$dest'/'$vfilename''$j'.jpg'
+                # if optional recipe file exists, cook with it using calculated strength
+                if [[ ! -z $optionalRecipeFile ]]; then
+                    echo 'running: cook -r '$optionalRecipeFile' -o "." -l '$dest'/'$vfilename''$j'.jpg'
                     stren=$((100-$stren))
                     echo "keyframe 2 stren: "$stren
-                    cookFunction -r $(realpath "$directorFolder/${optionalHistoryFile}") -o "." -l -str $stren $vfilename$j-cooked.jpg > /dev/null 2>&1                
+                    cookFunction -r $(realpath "$directorFolder/${optionalRecipeFile}") -o "." -l -str $stren $vfilename$j-cooked.jpg > /dev/null 2>&1                
                     pid=$!
                     wait $pid
                     mv $vfilename$j-cooked-cooked.jpg $vfilename$j-cooked.jpg
@@ -293,7 +294,7 @@ cookVideoFunction(){
     vreplayname_strip="${vreplayname//\//-}"
     cd ..; echo 'frames/out.mp4 '$vfilename'-'$vreplayname_strip'-result.mp4'; rm *.jpg; 
     mv out.mp4 $vfilename-$vreplayname_strip-result.mp4; 
-    # mv $director"/history/"$vreplayname'.txt' $vreplayname'.txt';
+    # mv $director"/recipe/"$vreplayname'.txt' $vreplayname'.txt';
     # If there is audio in the source file, this line might help
     #ffmpeg -i ../../$file -y -framerate $rate -pattern_type glob -i "$vfilename*-cooked.jpg" -c copy -map 0:1 -map 1:0 -c:v libx264 -pix_fmt yuv420p out.mp4
 }
