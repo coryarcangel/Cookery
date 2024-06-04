@@ -22,6 +22,7 @@
 unknown
 
 **COOKERY**
+Cory Arcangel & Henry Van Dusen
 
 A "deep frying" command-line utility which can randomly generate "deep frying" scores, and playback those scores on an image or on the frames of a video file (with optional key-framing!). 
 
@@ -114,3 +115,5 @@ Then recipe3.txt will be applied from frame 800 to the final frame. Each recipe 
 >
 >     cook -fc vid.mp4
 >     total frames: 150
+
+Published by Arcangel Surfware (SRF-061)
