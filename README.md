@@ -95,6 +95,6 @@ Then recipe3.txt will be applied from frame 800 to the final frame. Each recipe 
 > 
 > **_Hot tip:_**  generate a ton! 
 > 
-> for i in {1..10}; do input=spongebob.jpg; output=$(date +"%d-%m-%Y-%H-%M-%S")-$input; mkdir $output;./cook -n 100 -o $output -f $input; cp history.txt $output; done
+> for i in {1..10}; do input=spongebob.jpg; output=$(date +"%d-%m-%Y-%H-%M-%S")-$input; mkdir $output;./cook -n 100 -o $output -f $input; done
 
 Published by Arcangel Surfware (SRF-061)
