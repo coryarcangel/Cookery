@@ -56,12 +56,13 @@ cookFunction(){
     }
     compress() {
         factor_compress=${1:-$((1 + $RANDOM % 100))}
+        replay_value=$factor_compress # record the raw value so replaying the recipe reproduces this step
         # spread between 100 and 1 depending on strength. the higher the strength, the lower the resulting number
         factor_compress=$(echo "scale=0; (101 - $factor_compress * $strength)" | bc| awk '{print int($1)}')
         convert temp.jpg -compress JPEG2000 -quality $factor_compress temp.jpg
         echo 'convert temp.jpg -compress JPEG2000 -quality '$factor_compress' temp.jpg'
         # convert temp.jpg -scale $size\! temp.jpg 
-        echo 'compress '$factor_compress | tee -a $recipe_out # echoes the command to $recipe_out and stdout
+        echo 'compress '$replay_value | tee -a $recipe_out # echoes the command to $recipe_out and stdout
     }
     contrast() {
         factor=${1:-$((10 + $RANDOM % 200))}
@@ -71,12 +72,13 @@ cookFunction(){
     }
     resize() {
         factor=${1:-$((1 + $RANDOM % 95 + 5))}
+        replay_value=$factor # record the raw percentage so replaying the recipe reproduces this step
         # divide this by 100, multiply it times strength, and multiply it times the width of the original image
         factor=$(echo "scale=2; ($factor / 100  * $width)" | bc)
         # get factor - size and multiply by strength, then add that to factor
         factor=$(echo "scale=0; ($factor - $width) * $strength + $width" | bc| awk '{print int($1)}')
         convert temp.jpg -scale $factor  -scale $size\! temp.jpg
-        echo 'resize '$factor | tee -a $recipe_out
+        echo 'resize '$replay_value | tee -a $recipe_out
     }
     edge(){
         factor=${1:-$((1 + $RANDOM % 30))}
