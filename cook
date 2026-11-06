@@ -1,3 +1,11 @@
+if command -v magick > /dev/null 2>&1; then
+    image_command=(magick)
+    identify_command=(magick identify)
+else
+    image_command=(convert)
+    identify_command=(identify)
+fi
+
 cookFunction(){
     # Begin Defaults
     file=spongebob.jpg
@@ -37,7 +45,7 @@ cookFunction(){
         cp $replay $destination
     fi
 
-    size=$(identify -format "%[fx:w]x%[fx:h]" $file)
+    size=$("${identify_command[@]}" -format "%[fx:w]x%[fx:h]" $file)
     width=$(echo $size | cut -d'x' -f1)
     filename="${file%.*}"
 
@@ -49,7 +57,7 @@ cookFunction(){
     modulate()  {
         factor=${1:-$((100 + ($RANDOM % 500)))}
         factor=$(echo "scale=0; (($factor - 100) * $strength + 100)" | bc| awk '{print int($1)}')
-        convert temp.jpg -modulate 100,$factor temp.jpg
+        "${image_command[@]}" temp.jpg -modulate 100,$factor temp.jpg
         # if [[ ! -z $strength && $strength -gt 1 ]]; then
             echo 'modulate '$factor | tee -a $recipe_out
         # fi
@@ -59,7 +67,7 @@ cookFunction(){
         replay_value=$factor_compress # record the raw value so replaying the recipe reproduces this step
         # spread between 100 and 1 depending on strength. the higher the strength, the lower the resulting number
         factor_compress=$(echo "scale=0; (101 - $factor_compress * $strength)" | bc| awk '{print int($1)}')
-        convert temp.jpg -compress JPEG2000 -quality $factor_compress temp.jpg
+        "${image_command[@]}" temp.jpg -compress JPEG2000 -quality $factor_compress temp.jpg
         echo 'convert temp.jpg -compress JPEG2000 -quality '$factor_compress' temp.jpg'
         # convert temp.jpg -scale $size\! temp.jpg 
         echo 'compress '$replay_value | tee -a $recipe_out # echoes the command to $recipe_out and stdout
@@ -67,7 +75,7 @@ cookFunction(){
     contrast() {
         factor=${1:-$((10 + $RANDOM % 200))}
         factor=$(echo "scale=0; ($factor * $strength)" | bc| awk '{print int($1)}')
-        convert temp.jpg -brightness-contrast 0x$factor temp.jpg
+        "${image_command[@]}" temp.jpg -brightness-contrast 0x$factor temp.jpg
         echo 'contrast '$factor | tee -a $recipe_out
     }
     resize() {
@@ -77,18 +85,18 @@ cookFunction(){
         factor=$(echo "scale=2; ($factor / 100  * $width)" | bc)
         # get factor - size and multiply by strength, then add that to factor
         factor=$(echo "scale=0; ($factor - $width) * $strength + $width" | bc| awk '{print int($1)}')
-        convert temp.jpg -scale $factor  -scale $size\! temp.jpg
+        "${image_command[@]}" temp.jpg -scale $factor  -scale $size\! temp.jpg
         echo 'resize '$replay_value | tee -a $recipe_out
     }
     edge(){
         factor=${1:-$((1 + $RANDOM % 30))}
         # get factor - 30 and multiply by strength, then add that to factor
         factor=$(echo "scale=0; ($factor - 30) * $strength + 30" | bc | awk '{print int($1)}')
-        convert temp.jpg -edge $factor temp.jpg
+        "${image_command[@]}" temp.jpg -edge $factor temp.jpg
         echo 'edge '$factor | tee -a $recipe_out
     }
     normalize(){
-        convert temp.jpg -normalize temp.jpg
+        "${image_command[@]}" temp.jpg -normalize temp.jpg
         echo 'normalize' | tee -a $recipe_out
     }
     ### END TRANSFORM FUNCTIONS
@@ -318,7 +326,7 @@ if [[ $file =~ ".mp4" || $file =~ ".mov" || $file =~ ".avi" || $file =~ ".mkv" ]
     fi
     cookVideoFunction $args
 elif [[ $file =~ ".jpg" || $file =~ ".png" || $file =~ ".jpeg" || $file =~ ".tif" ]]; then
-    if ! [ -x "$(command -v convert)" ]; then
+    if ! [ -x "$(command -v "${image_command[0]}")" ]; then
         echo 'Error: imagemagick is not installed.' >&2
         exit 1
     fi
